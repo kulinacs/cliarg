@@ -6,7 +6,7 @@ import "reflect"
 import "strings"
 
 // Marshal returns the command line encoding of v.
-func Marshal(v interface{}) (string, error) {
+func Marshal(v interface{}) ([]string, error) {
 	typ := reflect.TypeOf(v)
 	val := reflect.ValueOf(v)
 	var output []string
@@ -19,7 +19,8 @@ func Marshal(v interface{}) (string, error) {
 		case "option":
 			option := reflect.Indirect(val).FieldByName(field.Name).String()
 			if len(option) > 0 {
-				output = append(output, fmt.Sprintf("%v %v", tag[0], option))
+				output = append(output, tag[0])
+				output = append(output, option)
 			}
 		case "optionequal":
 			optionEqual := reflect.Indirect(val).FieldByName(field.Name).String()
@@ -28,11 +29,11 @@ func Marshal(v interface{}) (string, error) {
 			}
 		case "flag":
 			if reflect.Indirect(val).FieldByName(field.Name).Bool() {
-				output = append(output, fmt.Sprintf("%v", tag[0]))
+				output = append(output, tag[0])
 			}
 		default:
-			return "", errors.New("unknown struct tag type")
+			return output, errors.New("unknown struct tag type")
 		}
 	}
-	return strings.Join(output, " "), nil
+	return output, nil
 }
